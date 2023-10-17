@@ -8,17 +8,17 @@
 #define MAX_FILE_ENTRIES 100
 
 struct file {
-    char fileName[MAX_FILENAME_LENGTH];
-    int size;
-    int startByte;
-    int endByte;
+    char fileName[MAX_FILENAME_LENGTH];         //Nombre del archivo
+    int size;                                   //Tamano del archivo
+    int startByte;                              //Byte de inicio del archivo en el directorio
+    int endByte;                                //Byte de final del archivo en el directorio
 };
 
 struct directory {
-    int totalSize;
-    int sizeDirectory;
-    int totalEntries;
-    struct file fileList[MAX_FILE_ENTRIES];
+    int totalSize;                              //Tamano total de todo
+    int sizeDirectory;                          //Tamano del directorio
+    int totalEntries;                           //Total de archivos en el directorio
+    struct file fileList[MAX_FILE_ENTRIES];     //Lista de los archivos en el directorio
 };
 
 
@@ -28,7 +28,20 @@ struct Log {
 };
 
 struct directory directoryStruct;
-
+//---------------------
+void listFiles(){
+    // imprimir la lista de archivos y su información
+    //insertLog(&headLog,"Imprimiendo la lista de archivos y su información\n");
+    printf("\nLista de archivos:\n");
+    for(int i = 0; i < directoryStruct.totalEntries; i ++){
+        printf("Nombre: %s\n", directoryStruct.fileList[i].fileName);
+        printf("Primer Byte: %d\n", directoryStruct.fileList[i].startByte);
+        printf("Último Byte: %d\n", directoryStruct.fileList[i].endByte);
+        printf("Tamaño: %d\n", directoryStruct.fileList[i].size);
+        printf("---------\n");
+    }
+   
+}
 void save(const char* fileName) {
     FILE* fileTar = fopen(fileName, "wb");
     if (fileTar == NULL) {
@@ -66,8 +79,8 @@ void readFromFile(const char* fileName){
     fclose(file);
     printf("Información leída desde el archivo \"%s\".\n", fileName);
 
-    printf("%i \n",directoryStruct.totalSize);
-    printf("%i \n",directoryStruct.totalEntries);
+    //printf("%i \n",directoryStruct.totalSize);
+    //printf("%i \n",directoryStruct.totalEntries);
 }
 
 int include(const char *option, char* flag){
@@ -87,9 +100,22 @@ char* file(char* argv[]){
     }
 }
 
+int findFile(const char* fileNameFound) {
+  for(int i = 0; i < directoryStruct.totalEntries; i ++){
+        struct file fileDirectory =  directoryStruct.fileList[i];
+        const char* fileName = fileDirectory.fileName;
+        int resultado = strcmp(fileNameFound, fileName);
+        if (resultado == 0) {
+            return i;
+        }   
+  } 
+  return -1;
+}
+
+//--------------------------------------------------
 void extract(const char* tarName){
     FILE* tarFile = fopen(tarName, "rb");
-
+    printf("Entra: %i\n",directoryStruct.totalEntries);
     for(int i = 0; i < directoryStruct.totalEntries; i ++){
         struct file fileDirectory =  directoryStruct.fileList[i];
 
@@ -108,31 +134,15 @@ void extract(const char* tarName){
 
         fread(data , sizeof(unsigned char), directoryStruct.fileList[i].size, tarFile);
         
-
-
         fwrite(data, sizeof(data), 1, file);
 
-        printf("Archivo extraido:%s" , fileName);
-
-        printf("Archivo extraido:%s", fileName);
+        printf("Archivo extraido:%s \n" , fileName);
 
         fclose(file);
     }
 
     fclose(tarFile);
 
-}
-
-int findFile(const char* fileNameFound) {
-  for(int i = 0; i < directoryStruct.totalEntries; i ++){
-        struct file fileDirectory =  directoryStruct.fileList[i];
-        const char* fileName = fileDirectory.fileName;
-        int resultado = strcmp(fileNameFound, fileName);
-        if (resultado == 0) {
-            return i;
-        }   
-  } 
-  return -1;
 }
 
 void delete(const char* tarName,const char* fileNameDelete){
@@ -155,8 +165,7 @@ void delete(const char* tarName,const char* fileNameDelete){
     }
 
     fwrite(&directoryStruct, sizeof(directoryStruct), 1, fileTar);
-
-
+    printf("Archivo borrado:%s \n" , fileNameDelete);
     fclose(fileTar); 
 }
 
@@ -210,10 +219,6 @@ void append(const char* tarName,const char* fileNameAppend){
             directoryStruct.totalEntries++;
         }
 
-        
-
- 
-
         char data[fileStruct.size];
 
         fread(data , sizeof(unsigned char), fileStruct.size, file);
@@ -226,7 +231,8 @@ void append(const char* tarName,const char* fileNameAppend){
 
         fclose(file);
         fclose(tarFile);
-
+        printf("Archivo agregado:%s \n" , fileNameAppend);
+        
     } else {
         printf("El archivo ya que encontraba dentro del directorio");
     }
@@ -255,6 +261,7 @@ void update(const char* tarName,const char* fileNameUpdate){
     if(NewfileSize <= directoryStruct.fileList[fileNamePos].size || difference >= differenceSize){
         delete(tarName, fileNameUpdate);
         append(tarName, fileNameUpdate);
+        
         //log
     } else {
         
@@ -300,9 +307,80 @@ void update(const char* tarName,const char* fileNameUpdate){
         fclose(tarFile);
     }
     fclose(file);
-    
+    printf("Archivo actualizado:%s \n" , fileNameUpdate);
 
 }
+
+void pack(const char* tarName){
+    FILE* tarFile = fopen(tarName, "rb+");          //tar
+    int sizeTar = sizeof(directoryStruct);
+    int difference;
+    int start = sizeof(directoryStruct);
+    if (directoryStruct.totalEntries == 0) {
+        exit(0);
+    } else {
+        //char allData[directoryStruct.size];
+        //struct file fileDirectory[MAX_FILE_ENTRIES] =  directoryStruct.fileList;
+        //fread(allData, sizeof(unsigned char), directoryStruct.size, tarFile);    //info vieja directorio
+        for(int i = 0; i < directoryStruct.totalEntries; i++) {
+            struct file file1 =  directoryStruct.fileList[i];
+
+            sizeTar = sizeTar + file1.size;
+            
+
+            int difference = file1.startByte - start; // si es 0 va corrido
+
+            printf("start: %i \n", file1.startByte);
+            printf("end: %i \n", start);
+
+            printf("aver: %i \n", difference);
+
+            if (difference != 0) {
+                fseek(tarFile, file1.startByte, SEEK_SET);
+                long fileSize = file1.size;
+                char oldData[fileSize];
+
+                fread(oldData, sizeof(unsigned char), fileSize, tarFile);    //info vieja directorio
+
+                file1.startByte = start;
+                file1.endByte = start + file1.size;
+
+                fseek(tarFile, file1.startByte, SEEK_SET);
+
+                fwrite(oldData, sizeof(oldData), 1, tarFile);
+
+                directoryStruct.fileList[i] = file1;
+            }
+
+            start = file1.endByte;
+
+            if (i == directoryStruct.totalEntries-1) {
+                directoryStruct.totalSize = sizeTar;
+                rewind(tarFile);
+                fwrite(&directoryStruct, sizeof(directoryStruct), 1, tarFile);
+                rewind(tarFile);
+                char lastSave[sizeTar];
+                fread(lastSave, sizeof(unsigned char), sizeTar, tarFile);    //info vieja directorio
+
+                fclose(tarFile);
+
+                printf("Esta en el final del archivo: %i \n", directoryStruct.totalEntries);
+
+                FILE* tarFile = fopen(tarName, "wb");  
+                
+                fwrite(lastSave, sizeof(lastSave), 1, tarFile);
+
+                fclose(tarFile);
+                break;
+            }
+            
+
+            }
+        }
+
+    }
+   
+
 
 void filePack(const char** filesName, int numFiles){
 
@@ -364,12 +442,15 @@ int main(int argc, char* argv[]) {
         if(strcmp(option, "--file") == 0){
             filePack((const char**)argv + 4, argc - 4);
             save(archiveName);
+            listFiles();
         }else if(strcmp(option, "--create") == 0){
             save(archiveName);
         }else {
             readFromFile(archiveName);
         }
-        
+        if(strcmp(option, "--list") == 0){
+            listFiles();
+        }
 
         if(strcmp(option, "--extract") == 0){
             extract(archiveName);
@@ -387,6 +468,9 @@ int main(int argc, char* argv[]) {
             update(archiveName,argv[4]);
         }
 
+        if(strcmp(option, "--pack") == 0){
+            pack(archiveName);
+        }
 
     }
     return 0;
