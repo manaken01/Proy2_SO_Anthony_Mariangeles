@@ -1,3 +1,6 @@
+//Proyecto 2 de sistema de archivos, memoria contigua
+//Mariangeles Carranza Varela y Anthony Jimenez Barrantes
+//Curso Sistemas Operativos
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,17 +24,99 @@ struct directory {
     struct file fileList[MAX_FILE_ENTRIES];     //Lista de los archivos en el directorio
 };
 
-
-struct Log {
-    char message[100];
-    struct Log* next;
+// Definición de la estructura de registro de logs
+struct LogEntry {
+    char message[200];
+    struct LogEntry* next;
 };
 
+// Puntero a la cabeza de la lista de registros de logs 1, informacion general
+struct LogEntry* logList1 = NULL;
+struct LogEntry* logListEnd1 = NULL; // Puntero al final para printear en orden
+// Puntero a la cabeza de la lista de registros de logs 2, informacion detallada
+struct LogEntry* logList2 = NULL;
+struct LogEntry* logListEnd2 = NULL; // Puntero al final de la lista detallada para printear en orden
 struct directory directoryStruct;
-//---------------------
+
+//-------------------------------------------------------------
+// Función para agregar un registro de log
+void addLog(const char *message, int flag) {
+    struct LogEntry* newLog = (struct LogEntry*)malloc(sizeof(struct LogEntry));
+    if (newLog == NULL) {
+        fprintf(stderr, "Error: No se pudo asignar memoria para el registro de log.\n");
+        exit(1);
+    }
+    snprintf(newLog->message, sizeof(newLog->message), "%s\n", message);
+    newLog->next = NULL;
+
+    if(flag == 1){
+        if (logList1 == NULL) {
+            logList1 = newLog;
+            logListEnd1 = newLog;
+        } else {
+            logListEnd1->next = newLog;
+            logListEnd1 = newLog;
+        }
+
+    }else{
+        if (logList2 == NULL) {
+        logList2 = newLog;
+        logListEnd2 = newLog;
+        } else {
+            logListEnd2->next = newLog;
+            logListEnd2 = newLog;
+        }
+
+    };
+}
+// Función para imprimir todos los registros de logs
+void printLogs(int flag) {
+    struct LogEntry* current1 = logList1;
+    struct LogEntry* current2 = logList2;
+    if(flag == 1){
+        printf("Registros de logs:\n");
+        while (current1 != NULL) {
+            printf("%s\n", current1->message);
+            printf("---------\n");
+            current1 = current1->next;
+        }
+    }else{
+        printf("Registros de logs detallados:\n");
+        while (current1 != NULL && current2 != NULL) {
+            printf("%s\n", current1->message);
+            printf("%s\n", current2->message);
+            printf("---------\n");
+            current1 = current1->next;
+            current2 = current2->next;
+        }
+    }
+}
+
+void freeLogs() {
+    struct LogEntry* current1 = logList1;
+    struct LogEntry* current2 = logList2;
+    while (current1 != NULL && current2 != NULL) {
+        struct LogEntry* temp1 = current1;
+        struct LogEntry* temp2 = current2;
+        current1 = current1->next;
+        current2 = current2->next;
+        free(temp1);
+        free(temp2);
+    }
+    logList1 = NULL;
+    logList2 = NULL;
+    logListEnd1 = NULL;
+    logListEnd1 = NULL;
+}
+//-----------------------------------------------
 void listFiles(){
     // imprimir la lista de archivos y su información
-    //insertLog(&headLog,"Imprimiendo la lista de archivos y su información\n");
+    addLog("Comando list, imprimiendo la lista de archivos y su información\n",1);
+    
+    char message[200];
+    snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+    addLog(message,2);
+
     printf("\nLista de archivos:\n");
     for(int i = 0; i < directoryStruct.totalEntries; i ++){
         printf("Nombre: %s\n", directoryStruct.fileList[i].fileName);
@@ -45,7 +130,13 @@ void listFiles(){
 void save(const char* fileName) {
     FILE* fileTar = fopen(fileName, "wb");
     if (fileTar == NULL) {
-        printf("Error: No se pudo abrir el archivo \"%s\" para escritura.\n", fileName);
+        char message1[100] = "Error: no se pudo abrir tar para escritura: \n";
+        strcat(message1, fileName);
+        addLog(message1,1);
+            
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
         return;
     }
     fwrite(&directoryStruct, sizeof(directoryStruct), 1, fileTar);
@@ -66,21 +157,38 @@ void save(const char* fileName) {
 
     }
     fclose(fileTar);
-    printf("Información guardada en el archivo \"%s\".\n", fileName);
+
+    char message1[100] = "Informacion guardada en el archivo: \n";
+    strcat(message1, fileName);
+    addLog(message1,1);
+    
+    char message[200];
+    snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+    addLog(message,2);
 }
 
 void readFromFile(const char* fileName){
     FILE* file = fopen(fileName, "rb");
     if (file == NULL) {
-      printf("Error: No se pudo abrir el archivo \"%s\" para lectura.\n", fileName);
-      return;
+        char message1[100] = "Error: no se pudo abrir archivo para escritura: \n";
+        strcat(message1, fileName);
+        addLog(message1,1);
+            
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
+        return;
     }
     fread(&directoryStruct, sizeof(directoryStruct), 1, file);
     fclose(file);
-    printf("Información leída desde el archivo \"%s\".\n", fileName);
 
-    //printf("%i \n",directoryStruct.totalSize);
-    //printf("%i \n",directoryStruct.totalEntries);
+    char message1[100] = "Informacion leida del archivo: \n";
+    strcat(message1, fileName);
+    addLog(message1,1);
+    
+    char message[200];
+    snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+    addLog(message,2);
 }
 
 int include(const char *option, char* flag){
@@ -115,7 +223,16 @@ int findFile(const char* fileNameFound) {
 //--------------------------------------------------
 void extract(const char* tarName){
     FILE* tarFile = fopen(tarName, "rb");
-    printf("Entra: %i\n",directoryStruct.totalEntries);
+    if (tarFile == NULL) {
+            char message1[100] = "Comando extract, error, no se pudo abrir tar para escritura: \n";
+            strcat(message1, tarName);
+            addLog(message1,1);
+                
+            char message[200];
+            snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+            addLog(message,2);
+            return;
+        }
     for(int i = 0; i < directoryStruct.totalEntries; i ++){
         struct file fileDirectory =  directoryStruct.fileList[i];
 
@@ -125,7 +242,13 @@ void extract(const char* tarName){
         
         FILE* file = fopen(fileName, "wb");
         if (file == NULL) {
-            //insertLog(&headLog,"Error: No se pudo abrir el archivo \"%s\".\n", fileName);
+            char message1[100] = "Comando extract, error, no se pudo abrir archivo para escritura: \n";
+            strcat(message1, fileName);
+            addLog(message1,1);
+                
+            char message[200];
+            snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+            addLog(message,2);
             return;
         }
         
@@ -136,17 +259,20 @@ void extract(const char* tarName){
         
         fwrite(data, sizeof(data), 1, file);
 
-        printf("Archivo extraido:%s \n" , fileName);
-
         fclose(file);
     }
 
     fclose(tarFile);
 
+    addLog("Comando extract, informacion extraida del tar\n",1);
+    
+    char message[200];
+    snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+    addLog(message,2);
 }
 
 void delete(const char* tarName,const char* fileNameDelete){
-
+    // Verificar si eiste falta
     for(int i = 0; i < directoryStruct.totalEntries; i ++){
         struct file fileDirectory =  directoryStruct.fileList[i];
         const char* fileName = fileDirectory.fileName;
@@ -160,13 +286,26 @@ void delete(const char* tarName,const char* fileNameDelete){
       }  
     FILE* fileTar = fopen(tarName, "r+");
     if (fileTar == NULL) {
-        printf("Error: No se pudo abrir el archivo \"%s\" para escritura.\n", fileTar);
+        char message1[100] = "Comando delete, error, no se pudo abrir tar par escritura: \n";
+        strcat(message1, tarName);
+        addLog(message1,1);
+            
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
         return;
     }
 
     fwrite(&directoryStruct, sizeof(directoryStruct), 1, fileTar);
-    printf("Archivo borrado:%s \n" , fileNameDelete);
     fclose(fileTar); 
+
+    char message1[100] = "Comando delete, archivo borrado del directorio: \n";
+    strcat(message1, fileNameDelete);
+    addLog(message1,1);
+    
+    char message[200];
+    snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+    addLog(message,2);
 }
 
 void append(const char* tarName,const char* fileNameAppend){
@@ -178,10 +317,16 @@ void append(const char* tarName,const char* fileNameAppend){
         struct file fileStruct;
         strcpy(fileStruct.fileName, fileNameAppend);
         FILE* file = fopen(fileNameAppend, "rb"); 
-        // if (file == NULL) {
-        //     insertLog(&headLog,"Error: No se pudo abrir el archivo \"%s\".\n", fileName);
-        //     return;
-        // }
+        if (file == NULL) {
+            char message1[100] = "Comando append, archivo inexistente: \n";
+            strcat(message1, fileNameAppend);
+            addLog(message1,1);
+            
+            char message[200];
+            snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+            addLog(message,2);
+        return;
+        }
         fseek(file, 0, SEEK_END);
         long fileSize = ftell(file);
         rewind(file);
@@ -231,10 +376,22 @@ void append(const char* tarName,const char* fileNameAppend){
 
         fclose(file);
         fclose(tarFile);
-        printf("Archivo agregado:%s \n" , fileNameAppend);
+        char message1[100] = "Comando append, archivo agregado al directorio: \n";
+        strcat(message1, fileNameAppend);
+        addLog(message1,1);
+        
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
         
     } else {
-        printf("El archivo ya que encontraba dentro del directorio");
+        char message1[100] = "Comando append, archivo ya se encontraba dentro del directorio: \n";
+        strcat(message1, fileNameAppend);
+        addLog(message1,1);
+        
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
     }
 }
 
@@ -242,7 +399,13 @@ void append(const char* tarName,const char* fileNameAppend){
 void update(const char* tarName,const char* fileNameUpdate){
     int fileNamePos = findFile(fileNameUpdate);
     if(fileNamePos == -1){
-        //insertLog(&headLog,"Error: No se pudo actualizar el archivo \"%s\", no existe.\n", fileNameUpdate);
+        char message1[100] = "Comando update, archivo inexistente en el directorio: \n";
+        strcat(message1, fileNameUpdate);
+        addLog(message1,1);
+        
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
         return;
     }
 
@@ -262,7 +425,6 @@ void update(const char* tarName,const char* fileNameUpdate){
         delete(tarName, fileNameUpdate);
         append(tarName, fileNameUpdate);
         
-        //log
     } else {
         
 
@@ -307,8 +469,15 @@ void update(const char* tarName,const char* fileNameUpdate){
         fclose(tarFile);
     }
     fclose(file);
-    printf("Archivo actualizado:%s \n" , fileNameUpdate);
 
+
+    char message1[100] = "Comando update, archivo actualizado: \n";
+    strcat(message1, fileNameUpdate);
+    addLog(message1,1);
+    
+    char message[200];
+    snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+    addLog(message,2);
 }
 
 void pack(const char* tarName){
@@ -330,10 +499,10 @@ void pack(const char* tarName){
 
             int difference = file1.startByte - start; // si es 0 va corrido
 
-            printf("start: %i \n", file1.startByte);
-            printf("end: %i \n", start);
+            //printf("start: %i \n", file1.startByte);
+            //printf("end: %i \n", start);
 
-            printf("aver: %i \n", difference);
+            //printf("aver: %i \n", difference);
 
             if (difference != 0) {
                 fseek(tarFile, file1.startByte, SEEK_SET);
@@ -364,7 +533,7 @@ void pack(const char* tarName){
 
                 fclose(tarFile);
 
-                printf("Esta en el final del archivo: %i \n", directoryStruct.totalEntries);
+                //printf("Esta en el final del archivo: %i \n", directoryStruct.totalEntries);
 
                 FILE* tarFile = fopen(tarName, "wb");  
                 
@@ -377,8 +546,13 @@ void pack(const char* tarName){
 
             }
         }
-
-    }
+        
+    addLog("Comando pack, archivo tar desfragmentado \n",1);
+    
+    char message[200];
+    snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+    addLog(message,2);
+}
    
 
 
@@ -395,10 +569,16 @@ void filePack(const char** filesName, int numFiles){
         strcpy(fileStruct.fileName, fileName);
 
         FILE* file = fopen(fileName, "rb"); 
-        // if (file == NULL) {
-        //     insertLog(&headLog,"Error: No se pudo abrir el archivo \"%s\".\n", fileName);
-        //     return;
-        // }
+        if (file == NULL) {
+            char message1[100] = "Comando file, error al abrir archivo: \n";
+            strcat(message1, fileName);
+            addLog(message1,1);
+            
+            char message[200];
+            snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+            addLog(message,2);
+            return;
+         }
 
         fseek(file, 0, SEEK_END);
         long fileSize = ftell(file);
@@ -408,11 +588,6 @@ void filePack(const char** filesName, int numFiles){
  
         directoryStruct.totalSize = directoryStruct.totalSize + fileSize;
 
-        // if (file.data  == NULL) {
-        //         insertLog(&headLog,"Error: No se pudo asignar memoria para los datos del bloque.\n");
-        //         fclose(file);
-        //         return;
-        //     }
         fclose(file);
         directoryStruct.fileList[i] =  fileStruct;
     }
@@ -424,6 +599,12 @@ void filePack(const char** filesName, int numFiles){
         directoryStruct.fileList[i].endByte = directoryStruct.fileList[i].startByte + directoryStruct.fileList[i].size;
         start = directoryStruct.fileList[i].endByte;
     }
+
+    addLog("Comando file,archivos comprimidos\n",1);
+    
+    char message[200];
+    snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+    addLog(message,2);
 }
 
 int main(int argc, char* argv[]) {
@@ -437,8 +618,6 @@ int main(int argc, char* argv[]) {
     char* archiveName = file(argv);
 
     if((strlen(option)>= 2) && option[0] == '-' && option[1] == '-') {
-        //insertLog(&headLog,"Ejecución del comando: %c\n", option);
-        
         if(strcmp(option, "--file") == 0){
             filePack((const char**)argv + 4, argc - 4);
             save(archiveName);
@@ -471,7 +650,52 @@ int main(int argc, char* argv[]) {
         if(strcmp(option, "--pack") == 0){
             pack(archiveName);
         }
-
+        if(strcmp(option, "--verbose") == 0){
+            printLogs(1);
+        }
+    freeLogs();
+    return 0;
     }
+    
+    for (int i = 1; option[i] != '\0' ; i++) { 
+        if(option[i] == 'f'){
+            filePack((const char**)argv + 4, argc - 4);
+            save(archiveName);
+            // listFiles();
+        }else if(option[i] == 'c'){
+            save(archiveName);
+        }else {
+            readFromFile(archiveName);
+        }
+
+      if(option[i] == 'x'){
+        extract(archiveName);
+      }
+      if(option[i] == 't'){
+        listFiles();
+      }
+      
+      if(option[i] == 'u'){
+        update(archiveName,argv[4]);
+      }
+
+      if(option[i] == 'r'){
+        append(archiveName,argv[4]);
+        
+      }
+      if(option[i] == 'p'){
+        pack(archiveName);
+        
+      }
+      if(option[i] == 'v' && option[i + 1] != 'v'){
+        printLogs(1);
+        }else if (option[i] == 'v' && option[i + 1] == 'v'){
+            printLogs(2);
+            i++;
+        }
+    }
+    
+
+    freeLogs();
     return 0;
 }
