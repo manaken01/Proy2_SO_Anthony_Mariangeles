@@ -224,15 +224,15 @@ int findFile(const char* fileNameFound) {
 void extract(const char* tarName){
     FILE* tarFile = fopen(tarName, "rb");
     if (tarFile == NULL) {
-            char message1[100] = "Comando extract, error, no se pudo abrir tar para escritura: \n";
-            strcat(message1, tarName);
-            addLog(message1,1);
-                
-            char message[200];
-            snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
-            addLog(message,2);
-            return;
-        }
+        char message1[100] = "Comando extract, error, no se pudo abrir tar para escritura: \n";
+        strcat(message1, tarName);
+        addLog(message1,1);
+            
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
+        return;
+    }
     for(int i = 0; i < directoryStruct.totalEntries; i ++){
         struct file fileDirectory =  directoryStruct.fileList[i];
 
@@ -272,7 +272,17 @@ void extract(const char* tarName){
 }
 
 void delete(const char* tarName,const char* fileNameDelete){
-    // Verificar si eiste falta
+    int fileFound = findFile(fileNameDelete);
+    if(fileFound == -1){
+        char message1[100] = "Comando delete, archivo inexistente en el directorio: \n";
+        strcat(message1, fileNameDelete);
+        addLog(message1,1);
+        
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
+        return;
+    }
     for(int i = 0; i < directoryStruct.totalEntries; i ++){
         struct file fileDirectory =  directoryStruct.fileList[i];
         const char* fileName = fileDirectory.fileName;
@@ -325,7 +335,7 @@ void append(const char* tarName,const char* fileNameAppend){
             char message[200];
             snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
             addLog(message,2);
-        return;
+            return;
         }
         fseek(file, 0, SEEK_END);
         long fileSize = ftell(file);
@@ -350,7 +360,16 @@ void append(const char* tarName,const char* fileNameAppend){
             start = fileDirectory.endByte;
         }
         FILE* tarFile = fopen(tarName, "r+");
-
+        if (tarFile == NULL) {
+            char message1[100] = "Comando append, error, no se pudo abrir tar para escritura: \n";
+            strcat(message1, tarName);
+            addLog(message1,1);
+                
+            char message[200];
+            snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+            addLog(message,2);
+            return;
+        }
         if (insert == 0) {
 
             fseek(tarFile, 0, SEEK_END);
@@ -359,7 +378,7 @@ void append(const char* tarName,const char* fileNameAppend){
 
             fileStruct.startByte = directoryStruct.fileList[directoryStruct.totalEntries-1].endByte;
             fileStruct.endByte = fileStruct.startByte + fileStruct.size;
-            directoryStruct.totalSize = tarSize;
+            directoryStruct.totalSize = tarSize + fileSize;
             directoryStruct.fileList[directoryStruct.totalEntries] = fileStruct;
             directoryStruct.totalEntries++;
         }
@@ -410,7 +429,16 @@ void update(const char* tarName,const char* fileNameUpdate){
     }
 
     FILE* file = fopen(fileNameUpdate, "rb");        //newfile
-   
+    if (file == NULL) {
+        char message1[100] = "Comando update, error, no se pudo abrir archivo para lectura: \n";
+        strcat(message1, fileNameUpdate);
+        addLog(message1,1);
+            
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
+        return;
+    }
     
     fseek(file, 0, SEEK_END);
     long NewfileSize = ftell(file);
@@ -429,6 +457,16 @@ void update(const char* tarName,const char* fileNameUpdate){
         
 
         FILE* tarFile = fopen(tarName, "rb+");          //tar
+        if (tarFile == NULL) {
+            char message1[100] = "Comando update, error, no se pudo abrir tar para escritura: \n";
+            strcat(message1, tarName);
+            addLog(message1,1);
+                
+            char message[200];
+            snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+            addLog(message,2);
+            return;
+        }
 
         struct file fileStruct = directoryStruct.fileList[fileNamePos];
 
@@ -482,15 +520,22 @@ void update(const char* tarName,const char* fileNameUpdate){
 
 void pack(const char* tarName){
     FILE* tarFile = fopen(tarName, "rb+");          //tar
+     if (tarFile == NULL) {
+        char message1[100] = "Comando pack, error, no se pudo abrir tar para escritura: \n";
+        strcat(message1, tarName);
+        addLog(message1,1);
+            
+        char message[200];
+        snprintf(message, sizeof(message), "Información adicional del directorio: \nTamaño total: %i\nTamaño del directorio: %i\nNumero de archivos del directorio: %i\n", directoryStruct.totalSize,directoryStruct.sizeDirectory,directoryStruct.totalEntries);
+        addLog(message,2);
+        return;
+    }
     int sizeTar = sizeof(directoryStruct);
     int difference;
     int start = sizeof(directoryStruct);
     if (directoryStruct.totalEntries == 0) {
         exit(0);
     } else {
-        //char allData[directoryStruct.size];
-        //struct file fileDirectory[MAX_FILE_ENTRIES] =  directoryStruct.fileList;
-        //fread(allData, sizeof(unsigned char), directoryStruct.size, tarFile);    //info vieja directorio
         for(int i = 0; i < directoryStruct.totalEntries; i++) {
             struct file file1 =  directoryStruct.fileList[i];
 
@@ -498,11 +543,6 @@ void pack(const char* tarName){
             
 
             int difference = file1.startByte - start; // si es 0 va corrido
-
-            //printf("start: %i \n", file1.startByte);
-            //printf("end: %i \n", start);
-
-            //printf("aver: %i \n", difference);
 
             if (difference != 0) {
                 fseek(tarFile, file1.startByte, SEEK_SET);
@@ -532,8 +572,6 @@ void pack(const char* tarName){
                 fread(lastSave, sizeof(unsigned char), sizeTar, tarFile);    //info vieja directorio
 
                 fclose(tarFile);
-
-                //printf("Esta en el final del archivo: %i \n", directoryStruct.totalEntries);
 
                 FILE* tarFile = fopen(tarName, "wb");  
                 
@@ -640,7 +678,10 @@ int main(int argc, char* argv[]) {
         }
 
         if(strcmp(option, "--append") == 0){
-            append(archiveName,argv[4]);
+            int counter = argc - 4;
+            for (int i = 0; i < counter; i++) {
+                append(archiveName,argv[i+4]);
+            }
         }
 
         if(strcmp(option, "--update") == 0){
@@ -680,8 +721,10 @@ int main(int argc, char* argv[]) {
       }
 
       if(option[i] == 'r'){
-        append(archiveName,argv[4]);
-        
+        int counter = argc - 4;
+        for (int i = 0; i < counter; i++) {
+            append(archiveName,argv[i+4]);
+        }
       }
       if(option[i] == 'p'){
         pack(archiveName);
