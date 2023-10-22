@@ -1,0 +1,19 @@
+La cohesión en el contexto del desarrollo de software se refiere a la medida en que los componentes o módulos de un programa están relacionados o enfocados en una tarea o responsabilidad específica. En otras palabras, la cohesión se utiliza para evaluar cuán estrechamente relacionadas y centradas están las funcionalidades dentro de un módulo o componente de software.
+
+Una alta cohesión es un objetivo deseado en el diseño de software, ya que indica que un módulo o componente realiza una tarea específica de manera eficiente y se encarga de un conjunto bien definido de responsabilidades. La alta cohesión a menudo se asocia con un código más mantenible, más fácil de entender y más reutilizable. Cuando los componentes de software tienen alta cohesión, son más independientes entre sí y se pueden modificar o reemplazar sin afectar demasiado a otras partes del sistema.
+
+Existen diferentes niveles de cohesión, que pueden ir desde alta a baja:
+
+Cohesión funcional: Los componentes de software están altamente centrados en una única tarea o responsabilidad específica. Esto es el nivel más alto de cohesión y es deseable.
+
+Cohesión secuencial: Los componentes realizan tareas relacionadas y se comunican entre sí en una secuencia específica. Aunque pueden estar relacionados, la dependencia secuencial a menudo se considera menos deseable.
+
+Cohesión comunicacional: Los componentes comparten datos o información entre sí, pero no están necesariamente relacionados en términos de responsabilidades. Esto puede ser menos deseable porque los componentes no tienen una función clara y única.
+
+Cohesión temporal: Los componentes se agrupan porque funcionan durante un período de tiempo específico. A menudo, esto es una forma de cohesión débil.
+
+Cohesión lógica: Los componentes están agrupados debido a que están relacionados de manera lógica, pero pueden abordar múltiples tareas. Esto es una forma de cohesión intermedia.
+
+Cohesión de coincidencia de datos: Los componentes se agrupan porque trabajan con el mismo conjunto de datos. Esto también se considera una forma de cohesión débil.
+
+El objetivo principal al evaluar la cohesión es lograr una alta cohesión funcional, ya que esto simplifica el diseño del software, facilita su mantenimiento y promueve la reutilización de componentes. Por otro lado, la baja cohesión puede dar lugar a sistemas difíciles de entender y de mantener, lo que dificulta la identificación de problemas y la introducción de cambios sin efectos secundarios no deseados.
